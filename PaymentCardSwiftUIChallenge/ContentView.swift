@@ -43,6 +43,7 @@ class Model: ObservableObject {
                 if(self.processDurationInSeconds == 0)
                 {
                     processDurationInSeconds = 60
+                    timer?.cancel()
                 }
                 print("\(self.processDurationInSeconds)")
             }
@@ -58,32 +59,59 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                // Seconds should count down from 60 to 0
-                Text("You have only \(viewModel.processDurationInSeconds) seconds left to get the discount")
-                
-                Button("Open payment", action: {
-                    showSheet.toggle()
-                })
-                .sheet(isPresented: $showSheet) {
-                    PaymentModalView(selectedItem: $selectedItem)
-                }
-                
-                NavigationLink(
-                    destination:
-                        FinishView()
-                        .navigationBarHidden(true),
-                    label: {
-                        Text("Finish")
-                        .opacity(selectedItem != nil ? 1 : 0)
+            ZStack {
+                Color.blue
+                    .ignoresSafeArea()
+                VStack {
+                    
+                    //AAO
+                    Spacer()
+                    
+                    // Seconds should count down from 60 to 0
+                    Text("You have only \(viewModel.processDurationInSeconds) seconds left to get the discount")
+                        .font(.title)
+                        .bold()
+                        .foregroundStyle(Color.white)
+                        .padding()
+                    
+                    //AAO
+                    Spacer()
+                    
+                    VStack(spacing: 5) {
+                        Button("Open payment", action: {
+                            showSheet.toggle()
+                        })
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                        .frame(height: 55)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.white)
+                        .cornerRadius(15)
+                        .padding()
+                        .sheet(isPresented: $showSheet) {
+                            PaymentModalView(selectedItem: $selectedItem)
+                        }
+                        //.background(Color.red)
+                        if selectedItem != nil {
+                            NavigationLink(
+                                destination:
+                                    FinishView()
+                                    .navigationBarHidden(true),
+                                label: {
+                                    Text("Finish")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                        .frame(height: 55)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.white)
+                                        .cornerRadius(15)
+                                        .padding()
+                                        //.background(Color.green)
+                                }
+                            )
+                        }//end if
                     }
-                )
-                
-                
-                // Visible only if payment type is selected
-//                Button("Finish", action: {
-//
-//                })
+                }
             }
         }
     }
@@ -128,9 +156,8 @@ struct PaymentInfoView: View {
         //
         // Finish button should be only available if user selected payment type.
         // Tapping on Finish button should close the modal.
-        
+
         List(selection: $selectedItem) {//(payTypes) { payType in
-        //List {
             if isLoading {
                 ProgressView()
             }
@@ -160,7 +187,6 @@ struct PaymentInfoView: View {
                         print("\(payType.name) selected")
                         selectedItem = payType.name
                     }
-                    //}
                 }
             }
         }
@@ -205,6 +231,7 @@ struct PaymentInfoView: View {
                 }
             }
         }
+
         //.navigationBarHidden(true)
         
     }
