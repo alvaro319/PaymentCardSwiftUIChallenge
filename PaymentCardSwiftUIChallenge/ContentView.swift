@@ -5,20 +5,220 @@
 //  Created by Alvaro Ordonez on 8/7/25.
 //
 
-import SwiftUI
+// Your task is to finish this application to satisfy requirements below and make it look like on the attached screenshots. Try to use 80/20 principle.
+// Good luck! 🍀
 
-struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+// 1. Setup UI of the ContentView. Try to keep it as similar as possible.
+// 2. Subscribe to the timer and count seconds down from 60 to 0 on the ContentView.
+// 3. Present PaymentModalView as a sheet after tapping on the "Open payment" button.
+// 4. Load payment types from repository in PaymentInfoView. Show loader when waiting for the response. No need to handle error.
+// 5. List should be refreshable.
+// 6. Show search bar for the list to filter payment types. You can filter items in any way.
+// 7. User should select one of the types on the list. Show checkmark next to the name when item is selected.
+// 8. Show "Done" button in navigation bar only if payment type is selected. Tapping this button should hide the modal.
+// 9. Show "Finish" button on ContentScreen only when "payment type" was selected.
+// 10. Replace main view with "FinishView" when user taps on the "Finish" button.
+
+import SwiftUI
+import Combine
+
+class Model: ObservableObject {
+
+    @Published var processDurationInSeconds: Int = 60
+    var repository: PaymentTypesRepository = PaymentTypesRepositoryImplementation()
+    //var cancellables: [AnyCancellable] = []
+    var timer: AnyCancellable?
+
+    init() {
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                //let's make sure weak self isn't nil
+                //if we can successfully assign 'let self' to the
+                //'weak self' then we can self.count +=1
+                //and no need to use the '?' in self?.count += 1
+                guard let self = self else { return }
+                self.processDurationInSeconds -= 1
+                
+                if(self.processDurationInSeconds == 0)
+                {
+                    processDurationInSeconds = 60
+                }
+                print("\(self.processDurationInSeconds)")
+            }
+            //.store(in: &cancellables)
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView: View {
+    
+    @StateObject var viewModel = Model()
+    @State var showSheet: Bool = false
+    @State var selectedItem: String?
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                // Seconds should count down from 60 to 0
+                Text("You have only \(viewModel.processDurationInSeconds) seconds left to get the discount")
+                
+                Button("Open payment", action: {
+                    showSheet.toggle()
+                })
+                .sheet(isPresented: $showSheet) {
+                    PaymentModalView(selectedItem: $selectedItem)
+                }
+                
+                NavigationLink(
+                    destination:
+                        FinishView()
+                        .navigationBarHidden(true),
+                    label: {
+                        Text("Finish")
+                        .opacity(selectedItem != nil ? 1 : 0)
+                    }
+                )
+                
+                
+                // Visible only if payment type is selected
+//                Button("Finish", action: {
+//
+//                })
+            }
+        }
+    }
 }
+
+struct FinishView: View {
+    var body: some View {
+        Text("Congratulations")
+    }
+}
+
+struct PaymentModalView : View {
+    
+    @Binding var selectedItem: String?
+    
+    var body: some View {
+        NavigationView {
+            PaymentInfoView(selectedItem: $selectedItem)
+        }
+    }
+}
+
+struct PaymentInfoView: View {
+    
+    var paymentTypesViewModel = PaymentTypesRepositoryImplementation()
+    @State private var payTypes : [PaymentType] = []
+    @State private var isLoading: Bool = true
+    @State private var searchText = ""
+    @Binding var selectedItem: String?
+    
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        // Load payment types when presenting the view. Repository has 2 seconds delay.
+        // User should select an item.
+        // Show checkmark in a selected row.
+        //
+        // No need to handle error.
+        // Use refreshing mechanism to reload the list items.
+        // Show loader before response comes.
+        // Show search bar to filter payment types
+        //
+        // Finish button should be only available if user selected payment type.
+        // Tapping on Finish button should close the modal.
+        
+        List(selection: $selectedItem) {//(payTypes) { payType in
+        //List {
+            if isLoading {
+                ProgressView()
+            }
+            else {
+                ForEach(
+                    payTypes.filter {
+                    searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText)
+                    }
+                ) { payType in
+                    //if isLoading {
+                        //ProgressView()
+                    //} else {
+                    ZStack {
+                        //Text(payType.name)
+                        HStack {
+                            Text(payType.name)
+                            Spacer()
+                            if payType.name == selectedItem {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color.green)
+                            }
+                        }
+                    }
+                    //Need to include contentShape(Rectangle). This helps to make the selection of a row work not only when the user clicks the text on the row but also anywhere else on the row
+                    .contentShape(Rectangle())//defines content shape for hit testing
+                    .onTapGesture {
+                        print("\(payType.name) selected")
+                        selectedItem = payType.name
+                    }
+                    //}
+                }
+            }
+        }
+        .navigationTitle("Payment info")
+        .navigationBarItems(
+            trailing:
+                Button("Done",
+                        action: {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                ).opacity(selectedItem != nil ? 1 : 0)
+        )
+        .onAppear {
+            isLoading = true
+            
+            paymentTypesViewModel.getTypes { result in
+                DispatchQueue.main.async {
+                    switch result {
+                        case .success(let value):
+                            //print("Succeded with \(value)")
+                            self.payTypes = value
+                            isLoading = false
+                            print("Succeeded with \(payTypes)")
+                        case .failure(let error): print("Failed with \(error)")
+                        }
+                }
+            }
+        }
+        .searchable(text: $searchText)
+        .refreshable {
+            isLoading = true
+            paymentTypesViewModel.getTypes { result in
+                DispatchQueue.main.async {
+                    switch result {
+                        case .success(let value):
+                            print("Refresh: \(value)")
+                            self.payTypes = value
+                            isLoading = false
+                            print("Refreshed with \(payTypes)")
+                        case .failure(let error): print("Failed with \(error)")
+                        }
+                }
+            }
+        }
+        //.navigationBarHidden(true)
+        
+    }
+    
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+        //PaymentInfoView()
+    }
+}
+
+
+//#Preview {
+//    ContentView()
+//}
