@@ -74,7 +74,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    VStack(spacing: 5) {
+                    VStack(spacing: 10) {
                         Button("Open payment", action: {
                             showSheet.toggle()
                         })
@@ -84,11 +84,11 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                         .background(Color.white)
                         .cornerRadius(15)
-                        .padding()
+                        .padding(.horizontal)
                         .sheet(isPresented: $showSheet) {
                             PaymentModalView(selectedItem: $selectedItem)
                         }
-                        //.background(Color.red)
+                        
                         if selectedItem != nil {
                             NavigationLink(
                                 destination:
@@ -102,8 +102,8 @@ struct ContentView: View {
                                         .frame(maxWidth: .infinity)
                                         .background(Color.white)
                                         .cornerRadius(15)
-                                        .padding()
-                                        //.background(Color.green)
+                                        .padding(.horizontal)
+                                        
                                 }
                             )
                         }//end if
