@@ -42,7 +42,6 @@ class Model: ObservableObject {
                 
                 if(self.processDurationInSeconds == 0)
                 {
-                    processDurationInSeconds = 60
                     timer?.cancel()
                 }
                 print("\(self.processDurationInSeconds)")
@@ -64,7 +63,6 @@ struct ContentView: View {
                     .ignoresSafeArea()
                 VStack {
                     
-                    //AAO
                     Spacer()
                     
                     // Seconds should count down from 60 to 0
@@ -74,7 +72,6 @@ struct ContentView: View {
                         .foregroundStyle(Color.white)
                         .padding()
                     
-                    //AAO
                     Spacer()
                     
                     VStack(spacing: 5) {
@@ -110,10 +107,10 @@ struct ContentView: View {
                                 }
                             )
                         }//end if
-                    }
-                }
-            }
-        }
+                    } //end VStack
+                }//end VStack
+            }// end ZStack
+        }//end NavigationView
     }
 }
 
@@ -143,6 +140,7 @@ struct PaymentInfoView: View {
     @Binding var selectedItem: String?
     
     @Environment(\.presentationMode) var presentationMode
+    @State private var isSearchPresented = false
     
     var body: some View {
         // Load payment types when presenting the view. Repository has 2 seconds delay.
@@ -162,18 +160,16 @@ struct PaymentInfoView: View {
                 ProgressView()
             }
             else {
-                ForEach(
-                    payTypes.filter {
-                    searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText)
-                    }
-                ) { payType in
-                    //if isLoading {
-                        //ProgressView()
-                    //} else {
+                ForEach(filteredPayTypes) { payType in
                     ZStack {
-                        //Text(payType.name)
                         HStack {
-                            Text(payType.name)
+                            Button {
+                                isSearchPresented = false
+                                print("\(payType.name) selected")
+                                selectedItem = payType.name
+                            } label: {
+                                Text(payType.name)
+                            }
                             Spacer()
                             if payType.name == selectedItem {
                                 Image(systemName: "checkmark")
@@ -181,15 +177,10 @@ struct PaymentInfoView: View {
                             }
                         }
                     }
-                    //Need to include contentShape(Rectangle). This helps to make the selection of a row work not only when the user clicks the text on the row but also anywhere else on the row
-                    .contentShape(Rectangle())//defines content shape for hit testing
-                    .onTapGesture {
-                        print("\(payType.name) selected")
-                        selectedItem = payType.name
-                    }
                 }
             }
         }
+        .searchable(text: $searchText, isPresented: $isSearchPresented)
         .navigationTitle("Payment info")
         .navigationBarItems(
             trailing:
@@ -215,7 +206,6 @@ struct PaymentInfoView: View {
                 }
             }
         }
-        .searchable(text: $searchText)
         .refreshable {
             isLoading = true
             paymentTypesViewModel.getTypes { result in
@@ -231,9 +221,14 @@ struct PaymentInfoView: View {
                 }
             }
         }
-
-        //.navigationBarHidden(true)
-        
+    }
+    
+    var filteredPayTypes: [PaymentType] {
+        if searchText.isEmpty {
+            return payTypes
+        } else {
+            return payTypes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
     }
     
 }
