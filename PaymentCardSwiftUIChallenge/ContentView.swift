@@ -28,6 +28,7 @@ class Model: ObservableObject {
     var repository: PaymentTypesRepository = PaymentTypesRepositoryImplementation()
     //var cancellables: [AnyCancellable] = []
     var timer: AnyCancellable?
+    @Published var isButtonDisabled = false
 
     init() {
         timer = Timer.publish(every: 1, on: .main, in: .common)
@@ -43,6 +44,7 @@ class Model: ObservableObject {
                 if(self.processDurationInSeconds == 0)
                 {
                     timer?.cancel()
+                    isButtonDisabled = true
                 }
                 print("\(self.processDurationInSeconds)")
             }
@@ -88,6 +90,8 @@ struct ContentView: View {
                         .sheet(isPresented: $showSheet) {
                             PaymentModalView(selectedItem: $selectedItem)
                         }
+                        .disabled(viewModel.isButtonDisabled)
+                        .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
                         
                         if selectedItem != nil {
                             NavigationLink(
