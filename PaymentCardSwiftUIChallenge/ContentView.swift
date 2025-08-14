@@ -107,6 +107,8 @@ struct ContentView: View {
                                         .background(Color.white)
                                         .cornerRadius(15)
                                         .padding(.horizontal)
+                                        .disabled(viewModel.isButtonDisabled)
+                                        .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
                                         
                                 }
                             )
