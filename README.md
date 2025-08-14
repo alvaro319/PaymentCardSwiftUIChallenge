@@ -42,4 +42,5 @@ Note: This exercise did not require use of any architecture. The requirements we
 12. The user can also use the searchbar to filter the list of pay types in the payment list. If the user searches a paytype, the list is filtered.
 13. When filtering a pay type, if the user then selects a paytype, all the filtered list of paytypes reappear along with the selected paytype checked. When the user clicks Done, Payment modal is dismissed.
 14. The user is then presented with a Finish button. When the Finish button is clicked, another view is displayed stating: Congatulations!
+15. Lastly, if the user selects a pay type in the Payment Modal View but the timer expires, the Done button is disabled along with all the paytypes listed. The user may return to the main view but both the Open payment button and the Finish button will be disabled.
 
