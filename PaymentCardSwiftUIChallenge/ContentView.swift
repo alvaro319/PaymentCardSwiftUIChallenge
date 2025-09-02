@@ -77,16 +77,21 @@ struct ContentView: View {
                     Spacer()
                     
                     VStack(spacing: 10) {
-                        Button("Open payment", action: {
+                        Button {
                             showSheet.toggle()
-                        })
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                        .frame(height: 55)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.white)
-                        .cornerRadius(15)
-                        .padding(.horizontal)
+                        } label: {
+                            Text("Open payment")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                                .frame(height: 55)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .padding(.horizontal)
+                                //only works when adding to label portion
+                                //of the button
+                                .contentShape(Rectangle())
+                        }
                         .sheet(isPresented: $showSheet) {
                             PaymentModalView(selectedItem: $selectedItem)
                         }
@@ -109,9 +114,10 @@ struct ContentView: View {
                                         .padding(.horizontal)
                                         .disabled(viewModel.isButtonDisabled)
                                         .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
-                                        
                                 }
                             )
+                            //make sure entire link is clickable
+                            .contentShape(Rectangle())
                         }//end if
                     } //end VStack
                 }//end VStack
@@ -186,6 +192,9 @@ struct PaymentInfoView: View {
                 }
             }
         }
+        //initializing isSearchPresented to false means it won't be
+        //put in focus when the pay types sheet displays
+        //if isSearchPresented initialized to true it would be put into focus
         .searchable(text: $searchText, isPresented: $isSearchPresented)
         .navigationTitle("Payment info")
         .navigationBarItems(
