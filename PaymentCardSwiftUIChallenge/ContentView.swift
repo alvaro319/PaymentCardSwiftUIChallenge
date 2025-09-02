@@ -197,35 +197,10 @@ struct PaymentInfoView: View {
                 ).opacity(selectedItem != nil ? 1 : 0)
         )
         .onAppear {
-            isLoading = true
-            
-            paymentTypesViewModel.getTypes { result in
-                DispatchQueue.main.async {
-                    switch result {
-                        case .success(let value):
-                            //print("Succeded with \(value)")
-                            self.payTypes = value
-                            isLoading = false
-                            print("Succeeded with \(payTypes)")
-                        case .failure(let error): print("Failed with \(error)")
-                        }
-                }
-            }
+            fetchPaymentTypes()
         }
         .refreshable {
-            isLoading = true
-            paymentTypesViewModel.getTypes { result in
-                DispatchQueue.main.async {
-                    switch result {
-                        case .success(let value):
-                            print("Refresh: \(value)")
-                            self.payTypes = value
-                            isLoading = false
-                            print("Refreshed with \(payTypes)")
-                        case .failure(let error): print("Failed with \(error)")
-                        }
-                }
-            }
+            fetchPaymentTypes()
         }
     }
     
@@ -234,6 +209,22 @@ struct PaymentInfoView: View {
             return payTypes
         } else {
             return payTypes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
+    
+    private func fetchPaymentTypes() {
+        isLoading = true
+        paymentTypesViewModel.getTypes { result in
+            DispatchQueue.main.async {
+                switch result {
+                    case .success(let value):
+                        print("Refresh: \(value)")
+                        self.payTypes = value
+                        isLoading = false
+                        print("Refreshed with \(payTypes)")
+                    case .failure(let error): print("Failed with \(error)")
+                    }
+            }
         }
     }
     
