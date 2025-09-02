@@ -77,52 +77,64 @@ struct ContentView: View {
                     Spacer()
                     
                     VStack(spacing: 10) {
-                        Button {
-                            showSheet.toggle()
-                        } label: {
-                            Text("Open payment")
-                                .font(.subheadline)
-                                .foregroundColor(.blue)
-                                .frame(height: 55)
-                                .frame(maxWidth: .infinity)
-                                .background(Color.white)
-                                .cornerRadius(15)
-                                .padding(.horizontal)
-                                //only works when adding to label portion
-                                //of the button
-                                .contentShape(Rectangle())
-                        }
-                        .sheet(isPresented: $showSheet) {
-                            PaymentModalView(selectedItem: $selectedItem)
-                        }
-                        .disabled(viewModel.isButtonDisabled)
-                        .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
+                        
+                        openPaymentButton
                         
                         if selectedItem != nil {
-                            NavigationLink(
-                                destination:
-                                    FinishView()
-                                    .navigationBarHidden(true),
-                                label: {
-                                    Text("Finish")
-                                        .font(.subheadline)
-                                        .foregroundColor(.blue)
-                                        .frame(height: 55)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color.white)
-                                        .cornerRadius(15)
-                                        .padding(.horizontal)
-                                        .disabled(viewModel.isButtonDisabled)
-                                        .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
-                                }
-                            )
-                            //make sure entire link is clickable
-                            .contentShape(Rectangle())
+                            finishButton
                         }//end if
+                        
                     } //end VStack
                 }//end VStack
             }// end ZStack
         }//end NavigationView
+    }
+}
+
+extension ContentView {
+    private var openPaymentButton: some View {
+        Button {
+            showSheet.toggle()
+        } label: {
+            Text("Open payment")
+                .font(.subheadline)
+                .foregroundColor(.blue)
+                .frame(height: 55)
+                .frame(maxWidth: .infinity)
+                .background(Color.white)
+                .cornerRadius(15)
+                .padding(.horizontal)
+                //only works when adding to label portion
+                //of the button
+                .contentShape(Rectangle())
+        }
+        .sheet(isPresented: $showSheet) {
+            PaymentModalView(selectedItem: $selectedItem)
+        }
+        .disabled(viewModel.isButtonDisabled)
+        .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
+    }
+    
+    private var finishButton: some View {
+        NavigationLink(
+            destination:
+                FinishView()
+                .navigationBarHidden(true),
+            label: {
+                Text("Finish")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white)
+                    .cornerRadius(15)
+                    .padding(.horizontal)
+                    .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
+            }
+        )
+        .disabled(viewModel.isButtonDisabled)
+        //make sure entire link is clickable
+        .contentShape(Rectangle())
     }
 }
 
