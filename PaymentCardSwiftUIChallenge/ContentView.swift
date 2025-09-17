@@ -27,7 +27,7 @@ class Model: ObservableObject {
     @Published var processDurationInSeconds: Int = 60
     var repository: PaymentTypesRepository = PaymentTypesRepositoryImplementation()
     //var cancellables: [AnyCancellable] = []
-    var timer: AnyCancellable?
+    private var timer: AnyCancellable?
     @Published var isButtonDisabled = false
 
     init() {
@@ -43,12 +43,22 @@ class Model: ObservableObject {
                 
                 if(self.processDurationInSeconds == 0)
                 {
-                    timer?.cancel()
+                    terminateTimer()
                     isButtonDisabled = true
                 }
                 print("\(self.processDurationInSeconds)")
             }
             //.store(in: &cancellables)
+    }
+    
+    private func terminateTimer() {
+        timer?.cancel()
+        timer = nil
+        print("Timer Stopped!")
+    }
+    
+    func stopTimer() {
+        terminateTimer()
     }
 }
 
@@ -88,6 +98,25 @@ struct ContentView: View {
                 }//end VStack
             }// end ZStack
         }//end NavigationView
+        .environmentObject(viewModel)
+    }
+}
+
+struct DefaultButtonViewModifier: ViewModifier {
+    
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(.blue)
+            .frame(height: 55)
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(15)
+    }
+}
+
+extension View {
+    func withDefaultButtonFormatting() -> some View {
+        modifier(DefaultButtonViewModifier())
     }
 }
 
@@ -98,11 +127,7 @@ extension ContentView {
         } label: {
             Text("Open payment")
                 .font(.subheadline)
-                .foregroundColor(.blue)
-                .frame(height: 55)
-                .frame(maxWidth: .infinity)
-                .background(Color.white)
-                .cornerRadius(15)
+                .withDefaultButtonFormatting()
                 .padding(.horizontal)
                 //only works when adding to label portion
                 //of the button
@@ -123,11 +148,7 @@ extension ContentView {
             label: {
                 Text("Finish")
                     .font(.subheadline)
-                    .foregroundColor(.blue)
-                    .frame(height: 55)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .cornerRadius(15)
+                    .withDefaultButtonFormatting()
                     .padding(.horizontal)
                     .opacity(viewModel.isButtonDisabled ? 0.5 : 1.0)
             }
@@ -139,8 +160,14 @@ extension ContentView {
 }
 
 struct FinishView: View {
+    
+    @EnvironmentObject private var viewModel: Model
+    
     var body: some View {
         Text("Congratulations")
+            .onAppear {
+                viewModel.stopTimer()
+            }
     }
 }
 
