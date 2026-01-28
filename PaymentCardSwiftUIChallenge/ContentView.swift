@@ -25,7 +25,7 @@ import Combine
 class Model: ObservableObject {
 
     @Published var processDurationInSeconds: Int = 60
-    var repository: PaymentTypesRepository = PaymentTypesRepositoryImplementation()
+    //var repository: PaymentTypesRepository = PaymentTypesRepositoryImplementation()
     //var cancellables: [AnyCancellable] = []
     private var timer: AnyCancellable?
     @Published var isButtonDisabled = false
@@ -191,8 +191,8 @@ struct PaymentInfoView: View {
     @Binding var selectedItem: String?
     
     @Environment(\.presentationMode) var presentationMode
-    @State private var isSearchPresented = false
-    
+    @State private var isSearchPresented = true
+
     var body: some View {
         // Load payment types when presenting the view. Repository has 2 seconds delay.
         // User should select an item.
@@ -234,16 +234,37 @@ struct PaymentInfoView: View {
         //initializing isSearchPresented to false means it won't be
         //put in focus when the pay types sheet displays
         //if isSearchPresented initialized to true it would be put into focus
-        .searchable(text: $searchText, isPresented: $isSearchPresented)
+        //.searchable(text: $searchText, isPresented: $isSearchPresented)
+
+        .searchable(text: $searchText, isPresented: $isSearchPresented, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Recipes")
         .navigationTitle("Payment info")
+        .toolbar {
+            if selectedItem != nil {
+                //Do not place if-statement inside ToolbarItem closure because
+                //ToolbarItem expects a view but with an if-statement it thinks
+                //there surely won't be one. Moved the if-statement outside the
+                //ToolbarItem closure
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+        // because of iOS update, a placeholder shadow now appears when the
+        //button's opacity is 0. Must now also use .toolbar instead of
+        //.navigationBarItems
+        /*
         .navigationBarItems(
-            trailing:
-                Button("Done",
-                        action: {
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                ).opacity(selectedItem != nil ? 1 : 0)
+
+                 Button("Done",
+                         action: {
+                             presentationMode.wrappedValue.dismiss()
+                         }
+                 ).opacity(selectedItem != nil ? 1 : 0)
+
         )
+         */
         .onAppear {
             fetchPaymentTypes()
         }
